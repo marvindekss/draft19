@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book of Aura</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let lastSavedContent = {}; // Object to track the last saved content of each section
+
+    function showExclusiveProfile(id) {
+      const membersSection = document.getElementById('members-section');
+      membersSection.classList.remove('hidden', 'grid', 'grid-cols-2');
+      membersSection.classList.add('flex', 'flex-col');
+
+      const profiles = document.querySelectorAll('[id^="profile-"]');
+      const buttons = document.querySelectorAll('.profile-button');
+
+      profiles.forEach(p => p.classList.add('hidden'));
+      buttons.forEach(b => b.classList.add('hidden'));
+
+      const profile = document.getElementById(id);
+      profile.classList.remove('hidden');
+    }
+
+    function toggleSection(id) {
+      const sections = ['members-section', 'newspaper-section', 'stats-section', 'history-section'];
+      sections.forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (sectionId === id) {
+          section.classList.remove('hidden');
+          if (id === 'members-section') {
+            section.classList.remove('flex', 'flex-col');
+            section.classList.add('grid', 'grid-cols-2', 'gap-4');
+            const buttons = document.querySelectorAll('.profile-button');
+            const profiles = document.querySelectorAll('[id^="profile-"]');
+            buttons.forEach(b => b.classList.remove('hidden'));
+            profiles.forEach(p => p.classList.add('hidden'));
+          }
+        } else {
+          section.classList.add('hidden');
+        }
+      });
+    }
+
+    function goToConstitution() {
+      window.open("https://docs.google.com/document/d/1JVLPCvDFRyE199hn1sWoTGmQ4NwJ9_QMe5UXqak98KQ/edit?usp=sharing", "_blank");
+    }
+
+    function goToHistory() {
+      window.open("https://docs.google.com/document/d/1G2pJxLm5_DIIRbR7Wln3lnvyegS8koOhivRFgqAI-Gw/edit?usp=sharing", "_blank");
+    }
+    
+    // Function to save all editable content to localStorage
+    function saveAllChanges() {
+      // Save newspaper and events content
+      const newspaperContent = document.getElementById('newspaper-content');
+      const eventsContent = document.getElementById('events-content');
+      const statsContent = document.getElementById('stats-content');
+      
+      localStorage.setItem('newspaper-content', newspaperContent.innerHTML);
+      localStorage.setItem('events-content', eventsContent.innerHTML);
+      localStorage.setItem('stats-content', statsContent.innerHTML);
+      
+      // Save member data for all members
+      for (let i = 1; i <= 8; i++) {
+        // Save aura points
+        const auraPoints = document.querySelector(`#profile-P${i} .aura-points`);
+        if (auraPoints) {
+          localStorage.setItem(`profile-P${i}-aura-points`, auraPoints.innerHTML);
+        }
+        
+        // Save financial and criminal records
+        const financial = document.getElementById(`financial-P${i}`);
+        const criminal = document.getElementById(`criminal-P${i}`);
+        
+        if (financial) {
+          localStorage.setItem(`financial-P${i}`, financial.innerHTML);
+        }
+        
+        if (criminal) {
+          localStorage.setItem(`criminal-P${i}`, criminal.innerHTML);
+        }
+        
+        // Save party and position
+        const party = document.querySelector(`#profile-P${i} .party-value`);
+        const position = document.querySelector(`#profile-P${i} .position-value`);
+        
+        if (party) {
+          localStorage.setItem(`profile-P${i}-party`, party.innerHTML);
+        }
+        
+        if (position) {
+          localStorage.setItem(`profile-P${i}-position`, position.innerHTML);
+        }
+      }
+    }
+    
+    // Function to load all saved content from localStorage
+    function loadAllSavedContent() {
+      // Load newspaper and events content
+      const newspaperContent = localStorage.getItem('newspaper-content');
+      const eventsContent = localStorage.getItem('events-content');
+      const statsContent = localStorage.getItem('stats-content');
+      
+      if (newspaperContent) {
+        document.getElementById('newspaper-content').innerHTML = newspaperContent;
+      }
+      
+      if (eventsContent) {
+        document.getElementById('events-content').innerHTML = eventsContent;
+      }
+      
+      if (statsContent) {
+        document.getElementById('stats-content').innerHTML = statsContent;
+      }
+      
+      // Load member data for all members
+      for (let i = 1; i <= 8; i++) {
+        // Load aura points
+        const auraPoints = localStorage.getItem(`profile-P${i}-aura-points`);
+        if (auraPoints) {
+          const auraElement = document.querySelector(`#profile-P${i} .aura-points`);
+          if (auraElement) {
+            auraElement.innerHTML = auraPoints;
+          }
+        }
+        
+        // Load financial and criminal records
+        const financial = localStorage.getItem(`financial-P${i}`);
+        const criminal = localStorage.getItem(`criminal-P${i}`);
+        
+        if (financial) {
+          const financialElement = document.getElementById(`financial-P${i}`);
+          if (financialElement) {
+            financialElement.innerHTML = financial;
+          }
+        }
+        
+        if (criminal) {
+          const criminalElement = document.getElementById(`criminal-P${i}`);
+          if (criminalElement) {
+            criminalElement.innerHTML = criminal;
+          }
+        }
+        
+        // Load party and position
+        const party = localStorage.getItem(`profile-P${i}-party`);
+        const position = localStorage.getItem(`profile-P${i}-position`);
+        
+        if (party) {
+          const partyElement = document.querySelector(`#profile-P${i} .party-value`);
+          if (partyElement) {
+            partyElement.innerHTML = party;
+          }
+        }
+        
+        if (position) {
+          const positionElement = document.querySelector(`#profile-P${i} .position-value`);
+          if (positionElement) {
+            positionElement.innerHTML = position;
+          }
+        }
+      }
+    }
+    
+    // Auto-save function that runs every 72 hours
+    function setupAutoSave() {
+      setInterval(function() {
+        saveAllChanges();
+        console.log("Auto-saved content to localStorage at " + new Date().toLocaleTimeString());
+      }, 270000000); // 72 hours
+    }
+  </script>
+</head>
+<body class="bg-gray-100 p-6 flex flex-col min-h-screen justify-between" onload="loadAllSavedContent(); setupAutoSave();">
+  <div class="flex-grow">
+    <h1 class="text-3xl font-bold text-center mb-8">Book of Aura</h1>
+
+    <div id="members-section" class="hidden grid grid-cols-2 gap-4">
+      <button onclick="showExclusiveProfile('profile-P1')" class="profile-button bg-blue-200 hover:bg-blue-300 p-4 rounded shadow">Marvin</button>
+      <button onclick="showExclusiveProfile('profile-P2')" class="profile-button bg-blue-200 hover:bg-blue-300 p-4 rounded shadow">Mark</button>
+      <button onclick="showExclusiveProfile('profile-P3')" class="profile-button bg-blue-200 hover:bg-blue-300 p-4 rounded shadow">Yasser</button>
+      <button onclick="showExclusiveProfile('profile-P4')" class="profile-button bg-blue-200 hover:bg-blue-300 p-4 rounded shadow">Mayassi</button>
+      <button onclick="showExclusiveProfile('profile-P5')" class="profile-button bg-blue-200 hover:bg-blue-300 p-4 rounded shadow">Georges</button>
+      <button onclick="showExclusiveProfile('profile-P6')" class="profile-button bg-blue-200 hover:bg-blue-300 p-4 rounded shadow">Ghadi</button>
+      <button onclick="showExclusiveProfile('profile-P7')" class="profile-button bg-blue-200 hover:bg-blue-300 p-4 rounded shadow">Chris</button>
+      <button onclick="showExclusiveProfile('profile-P8')" class="profile-button bg-blue-200 hover:bg-blue-300 p-4 rounded shadow">Jose</button>
+
+      <div id="profile-P1" class="hidden bg-white p-4 rounded shadow">
+        <h2 contenteditable="true" class="text-2xl font-semibold text-center mb-4">Marvin</h2>
+        <p><strong>Party:</strong> <span contenteditable="true" class="party-value">Independent</span></p>
+        <p><strong>Position:</strong> <span contenteditable="true" class="position-value">President</span></p>
+        <p>
+          <strong>Aura Points:</strong> <span class="aura-points" contenteditable="true">1540</span>
+        </p>
+        <p>
+          <strong>Financial Record:</strong> <span id="financial-P1" contenteditable="true">Clean</span>
+        </p>
+        <p>
+          <strong>Criminal Record:</strong> <span id="criminal-P1" contenteditable="true">None</span>
+        </p>
+      </div>
+
+      <div id="profile-P2" class="hidden bg-white p-4 rounded shadow">
+        <h2 contenteditable="true" class="text-2xl font-semibold text-center mb-4">Mark</h2>
+        <p><strong>Party:</strong> <span contenteditable="true" class="party-value">Party A</span></p>
+        <p><strong>Position:</strong> <span contenteditable="true" class="position-value">Vice President</span></p>
+        <p>
+          <strong>Aura Points:</strong> <span class="aura-points" contenteditable="true">1310</span>
+        </p>
+        <p>
+          <strong>Financial Record:</strong> <span id="financial-P2" contenteditable="true">Clean</span>
+        </p>
+        <p>
+          <strong>Criminal Record:</strong> <span id="criminal-P2" contenteditable="true">None</span>
+        </p>
+      </div>
+
+      <div id="profile-P3" class="hidden bg-white p-4 rounded shadow">
+        <h2 contenteditable="true" class="text-2xl font-semibold text-center mb-4">Yasser</h2>
+        <p><strong>Party:</strong> <span contenteditable="true" class="party-value">Party B</span></p>
+        <p><strong>Position:</strong> <span contenteditable="true" class="position-value">Treasurer</span></p>
+        <p>
+          <strong>Aura Points:</strong> <span class="aura-points" contenteditable="true">1200</span>
+        </p>
+        <p>
+          <strong>Financial Record:</strong> <span id="financial-P3" contenteditable="true">Clean</span>
+        </p>
+        <p>
+          <strong>Criminal Record:</strong> <span id="criminal-P3" contenteditable="true">None</span>
+        </p>
+      </div>
+
+      <div id="profile-P4" class="hidden bg-white p-4 rounded shadow">
+        <h2 contenteditable="true" class="text-2xl font-semibold text-center mb-4">Mayassi</h2>
+        <p><strong>Party:</strong> <span contenteditable="true" class="party-value">Party C</span></p>
+        <p><strong>Position:</strong> <span contenteditable="true" class="position-value">Secretary</span></p>
+        <p>
+          <strong>Aura Points:</strong> <span class="aura-points" contenteditable="true">1445</span>
+        </p>
+        <p>
+          <strong>Financial Record:</strong> <span id="financial-P4" contenteditable="true">Clean</span>
+        </p>
+        <p>
+          <strong>Criminal Record:</strong> <span id="criminal-P4" contenteditable="true">None</span>
+        </p>
+      </div>
+
+      <div id="profile-P5" class="hidden bg-white p-4 rounded shadow">
+        <h2 contenteditable="true" class="text-2xl font-semibold text-center mb-4">Georges</h2>
+        <p><strong>Party:</strong> <span contenteditable="true" class="party-value">Party A</span></p>
+        <p><strong>Position:</strong> <span contenteditable="true" class="position-value">Member</span></p>
+        <p>
+          <strong>Aura Points:</strong> <span class="aura-points" contenteditable="true">1105</span>
+        </p>
+        <p>
+          <strong>Financial Record:</strong> <span id="financial-P5" contenteditable="true">Clean</span>
+        </p>
+        <p>
+          <strong>Criminal Record:</strong> <span id="criminal-P5" contenteditable="true">None</span>
+        </p>
+      </div>
+
+      <div id="profile-P6" class="hidden bg-white p-4 rounded shadow">
+        <h2 contenteditable="true" class="text-2xl font-semibold text-center mb-4">Ghadi</h2>
+        <p><strong>Party:</strong> <span contenteditable="true" class="party-value">Party B</span></p>
+        <p><strong>Position:</strong> <span contenteditable="true" class="position-value">Member</span></p>
+        <p>
+          <strong>Aura Points:</strong> <span class="aura-points" contenteditable="true">1380</span>
+        </p>
+        <p>
+          <strong>Financial Record:</strong> <span id="financial-P6" contenteditable="true">Clean</span>
+        </p>
+        <p>
+          <strong>Criminal Record:</strong> <span id="criminal-P6" contenteditable="true">None</span>
+        </p>
+      </div>
+
+      <div id="profile-P7" class="hidden bg-white p-4 rounded shadow">
+        <h2 contenteditable="true" class="text-2xl font-semibold text-center mb-4">Chris</h2>
+        <p><strong>Party:</strong> <span contenteditable="true" class="party-value">Independent</span></p>
+        <p><strong>Position:</strong> <span contenteditable="true" class="position-value">Member</span></p>
+        <p>
+          <strong>Aura Points:</strong> <span class="aura-points" contenteditable="true">1275</span>
+        </p>
+        <p>
+          <strong>Financial Record:</strong> <span id="financial-P7" contenteditable="true">Clean</span>
+        </p>
+        <p>
+          <strong>Criminal Record:</strong> <span id="criminal-P7" contenteditable="true">None</span>
+        </p>
+      </div>
+
+      <div id="profile-P8" class="hidden bg-white p-4 rounded shadow">
+        <h2 contenteditable="true" class="text-2xl font-semibold text-center mb-4">Jose</h2>
+        <p><strong>Party:</strong> <span contenteditable="true" class="party-value">Party C</span></p>
+        <p><strong>Position:</strong> <span contenteditable="true" class="position-value">Member</span></p>
+        <p>
+          <strong>Aura Points:</strong> <span class="aura-points" contenteditable="true">1325</span>
+        </p>
+        <p>
+          <strong>Financial Record:</strong> <span id="financial-P8" contenteditable="true">Clean</span>
+        </p>
+        <p>
+          <strong>Criminal Record:</strong> <span id="criminal-P8" contenteditable="true">None</span>
+        </p>
+      </div>
+    </div>
+    
+    <div id="newspaper-section" class="hidden mt-8">
+      <div class="bg-white rounded-xl shadow p-4 mb-4 relative">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-xl font-semibold">Daily Newspaper</h2>
+        </div>
+        <p id="newspaper-content" contenteditable="true" class="text-gray-700">All students are expected to attend the assembly at 8:00 AM tomorrow.</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4 relative">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-xl font-semibold">Upcoming Events</h2>
+        </div>
+        <ul id="events-content" contenteditable="true" class="list-disc list-inside text-gray-700">
+          <li>Science Fair - May 10</li>
+          <li>Sports Day - May 18</li>
+          <li>Art Exhibition - May 25</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="stats-section" class="hidden mt-8">
+      <div class="bg-white rounded-xl shadow p-4">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-xl font-semibold">Stats</h2>
+        </div>
+        <p id="stats-content" contenteditable="true" class="text-gray-600">(Currently empty)</p>
+      </div>
+    </div>
+
+    <div id="history-section" class="hidden mt-8">
+      <div class="bg-white rounded-xl shadow p-4">
+        <h2 class="text-xl font-semibold mb-4">History</h2>
+        <button onclick="goToHistory()" class="bg-blue-100 hover:bg-blue-200 p-3 rounded shadow w-full">Access History Document</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-white rounded-xl shadow p-4 flex justify-center gap-6 mt-8 flex-wrap">
+    <button onclick="goToConstitution()" class="text-lg font-semibold text-purple-700">Constitution</button>
+    <button onclick="toggleSection('members-section')" class="text-lg font-semibold text-green-700">Members</button>
+    <button onclick="toggleSection('newspaper-section')" class="text-lg font-semibold text-blue-700">Newspaper</button>
+    <button onclick="toggleSection('stats-section')" class="text-lg font-semibold text-red-700">Stats</button>
+    <button onclick="goToHistory()" class="text-lg font-semibold text-yellow-700">History</button>
+  </footer>
+  
+  <!-- JavaScript to save content when changes are made -->
+  <script>
+    // Save changes on input for all contenteditable elements
+    document.addEventListener('input', function(e) {
+      if (e.target.hasAttribute('contenteditable')) {
+        // Trigger save after short delay to avoid saving on every keystroke
+        clearTimeout(window.saveTimeout);
+        window.saveTimeout = setTimeout(function() {
+          saveAllChanges();
+          console.log("Changes saved automatically");
+        }, 2000); // 2 second delay
+      }
+    });
+    
+    // Save changes when leaving the page
+    window.addEventListener('beforeunload', function() {
+      saveAllChanges();
+    });
+  </script>
+</body>
+</html>
